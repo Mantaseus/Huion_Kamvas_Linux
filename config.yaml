@@ -1,0 +1,42 @@
+pen:
+    max_x: 58752
+    max_y: 33048
+    max_pressure: 8191
+    max_tilt_x: 60
+    max_tilt_y: 60
+    resolution: 5080
+
+# The pressure curve is defined as a Bezier curve
+pressure_curve:
+    low:
+        y: 0
+        slope_x: 0.5
+        slope_y: 0.5
+    high:
+        y: 1
+        slope_x: -0.5
+        slope_y: -0.5
+
+actions:
+    krita:
+        pen_click: key a
+        pen_btn1: key b
+        pen_btn2: key c
+        tablet_buttons:
+            1: key d
+            2: key e
+            4: key f
+            8: key g
+            16: key h
+        tablet_scrollbar_increase: key i
+        tablet_scrollbar_decrease: key j
+        tablet_scrollbar:
+            1: key i
+            2: key j
+            3: key k
+            4: key l
+            5: key m
+            6: key n
+            7: key o
+        
+            
