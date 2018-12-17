@@ -10,39 +10,6 @@ import subprocess
 
 import json
 
-# CONFIG ------------------------------------------------------------------------------------------
-
-PEN_MAX_X = 58752
-PEN_MAX_Y = 33048
-PEN_MAX_Z = 8191
-PEN_MAX_TILT_X = 60
-PEN_MAX_TILT_Y = 60
-RESOLUTION = 5080
-
-PEN_CLICK_ACTION = 'key a'
-PEN_BTN1_ACTION = 'key b'
-PEN_BTN2_ACTION = 'key c'
-
-TABLET_BTN_ACTIONS = {
-    1: 'key d',
-    2: 'key e',
-    4: 'key f',
-    8: 'key g',
-    16: 'key h',
-}
-
-TABLET_SCROLLBAR_INCREASE_ACTION = 'key i'
-TABLET_SCROLLBAR_DECREASE_ACTION = 'key j'
-TABLET_SCROLLBAR_ACTIONS = {
-    1: 'key k',
-    2: 'key l',
-    3: 'key m',
-    4: 'key n',
-    5: 'key o',
-    6: 'key p',
-    7: 'key q',
-}
-
 # GLOBALS -----------------------------------------------------------------------------------------
 
 previous_scrollbar_state = 0
@@ -135,11 +102,11 @@ if __name__ == '__main__':
             ecodes.BTN_STYLUS2],
         ecodes.EV_ABS: [
             #AbsInfo input: value, min, max, fuzz, flat, resolution
-            (ecodes.ABS_X, AbsInfo(0,0,PEN_MAX_X,0,0,RESOLUTION)),         
-            (ecodes.ABS_Y, AbsInfo(0,0,PEN_MAX_Y,0,0,RESOLUTION)),
-            (ecodes.ABS_PRESSURE, AbsInfo(0,0,PEN_MAX_Z,0,0,0)),
-            (ecodes.ABS_TILT_X, AbsInfo(0,0,PEN_MAX_TILT_X,0,0,0)),
-            (ecodes.ABS_TILT_Y, AbsInfo(0,0,PEN_MAX_TILT_Y,0,0,0)),
+            (ecodes.ABS_X, AbsInfo(0,0,config['pen']['max_x'],0,0,config['pen']['resolution'])),         
+            (ecodes.ABS_Y, AbsInfo(0,0,config['pen']['max_y'],0,0,config['pen']['resolution'])),
+            (ecodes.ABS_PRESSURE, AbsInfo(0,0,config['pen']['max_pressure'],0,0,0)),
+            (ecodes.ABS_TILT_X, AbsInfo(0,0,config['pen']['max_tilt_x'],0,0,0)),
+            (ecodes.ABS_TILT_Y, AbsInfo(0,0,config['pen']['max_tilt_y'],0,0,0)),
         ],
         #ecodes.EV_MSC: [ecodes.MSC_SCAN], #not sure why, but it appears to be needed
     }
@@ -196,42 +163,45 @@ if __name__ == '__main__':
             vpen.write(ecodes.EV_ABS, ecodes.ABS_TILT_X, pen_tilt_x)
             vpen.write(ecodes.EV_ABS, ecodes.ABS_TILT_Y, pen_tilt_y)
 
+            # Pen click
             if data[1] == 129:
-                if PEN_CLICK_ACTION:
-                    run_action(PEN_CLICK_ACTION)             
+                if config['actions']['pen_click']:
+                    run_action(config['actions']['pen_click'])
                 else:
                     vpen.write(ecodes.EV_KEY, ecodes.BTN_TOUCH, 1)
 
+            # Pen button 1
             if data[1] == 130:
-                if PEN_BTN1_ACTION:
-                    run_action(PEN_BTN1_ACTION)             
+                if config['actions']['pen_button_1']:
+                    run_action(config['actions']['pen_button_1'])             
                 else:
                     vpen.write(ecodes.EV_KEY, ecodes.BTN_STYLUS, 1)
 
+            # Pen button 2
             if data[1] == 132:
-                if PEN_BTN2_ACTION:
-                    run_action(PEN_BTN2_ACTION)             
+                if config['actions']['pen_button_2']:
+                    run_action(config['actions']['pen_button_2'])             
                 else:
                     vpen.write(ecodes.EV_KEY, ecodes.BTN_STYLUS2, 1)
 
             # Tablet buttons
             if data[1] == 224:
                 btn_index = data[4]
-                if btn_index != previous_clicked_btn and TABLET_BTN_ACTIONS.get(btn_index, 0):
-                    run_action(TABLET_BTN_ACTIONS.get(btn_index,0))
+                if btn_index != previous_clicked_btn and config['actions']['tablet_buttons'].get(btn_index, 0):
+                    run_action(config['actions']['tablet_buttons'][btn_index])
                 previous_clicked_btn = btn_index
 
             # Scrollbar
             if data[1] == 240:
                 scrollbar_state = data[5]
 
-                if TABLET_SCROLLBAR_INCREASE_ACTION and scrollbar_state > previous_scrollbar_state:
-                    run_action(TABLET_SCROLLBAR_INCREASE_ACTION)
-                elif TABLET_SCROLLBAR_DECREASE_ACTION and scrollbar_state < previous_scrollbar_state:
-                    run_action(TABLET_SCROLLBAR_DECREASE_ACTION)
+                if config['actions']['tablet_scrollbar_increase'] and scrollbar_state > previous_scrollbar_state:
+                    run_action(config['actions']['tablet_scrollbar_increase'])
+                elif config['actions']['tablet_scrollbar_decrease'] and scrollbar_state < previous_scrollbar_state:
+                    run_action(config['actions']['tablet_scrollbar_decrease'])
 
-                if scrollbar_state != previous_scrollbar_state and TABLET_SCROLLBAR_ACTIONS.get(scrollbar_state,0):
-                    run_action(TABLET_SCROLLBAR_ACTIONS.get(scrollbar_state, 0))
+                if scrollbar_state != previous_scrollbar_state and config['actions']['tablet_scrollbar'][scrollbar_state]:
+                    run_action(config['actions']['tablet_scrollbar'][scrollbar_state])
 
                 previous_scrollbar_state = scrollbar_state
             
