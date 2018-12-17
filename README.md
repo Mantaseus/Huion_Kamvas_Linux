@@ -31,7 +31,7 @@ This script uses a simple configuration file to give you control over how your g
         ```
         sudo pacman -S xf86-input-input-evdev
         ```
-    - [xdotool](https://www.semicomplete.com/projects/xdotool/): Allows you to simulate keyboard input and other mouse activities. This will be used by the script to trigger user defined actions (in ./config.yaml file) when a certain button is pressed on the graphics tablet
+    - [xdotool](https://www.semicomplete.com/projects/xdotool/): Allows you to simulate keyboard input and other mouse activities. This will be used by the script to trigger user defined actions (in ./config.json file) when a certain button is pressed on the graphics tablet
         
         ```
         sudo pacman -S xdotool
@@ -90,7 +90,7 @@ This script uses a simple configuration file to give you control over how your g
 
 ## Configuration
 
-You can edit the `./config.yaml` file to define your custom settings for your graphics tablet. The config file allows you to define the following:
+You can edit the `./config.json` file to define your custom settings for your graphics tablet. The config file allows you to define the following:
 - Capabilies of your graphics tablet (like its resolution, pressure sensitivity, etc)
 - Pressure Curve 
     - A simple cubic bezier curve

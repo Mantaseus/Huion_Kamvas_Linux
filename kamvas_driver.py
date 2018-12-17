@@ -1,4 +1,5 @@
 from __future__ import print_function
+from pprint import pprint
 
 import usb.core
 import usb.util
@@ -7,8 +8,7 @@ from evdev import UInput, ecodes, AbsInfo
 import time
 import subprocess
 
-# sudo pip install PyYAML
-import yaml
+import json
 
 # CONFIG ------------------------------------------------------------------------------------------
 
@@ -90,25 +90,31 @@ def run_action(action):
         print(e)
 
 def load_config(action):
-    with open('config.yaml', 'r') as yaml_file:
-        config_load = yaml.load(yaml_file)
-    
-    if config_load.get('pen', 0):
+    with open('config.json', 'r') as json_file:
+        config_load = json.load(json_file)
+   
+    try: 
         config['pen'] = config_load['pen']
-    else:
+    except:
         print('The \'./config.yaml\' file does not have the \'pen\' property')
         exit()
 
-    if config_load.get('pen', 0):
+    try:
         config['pressure_curve'] = config_load['pressure_curve']
-    else:
+    except:
         print('The \'./config.yaml\' file does not have the \'pressure_curve\' property')
         exit()
 
-    if config_load.get(action, 0):
-        config[action] = config_load[action]
-    else:
-        print('The \'./config.yaml\' file does not have the \'{}\' property'.format(action))
+    try:
+        config['actions'] = config_load['actions'][action]
+
+        # JSON doesn't allow numeric keys for dictionaries, so we will have to make that happen
+        tablet_buttons = config['actions']['tablet_buttons']
+        config['actions']['tablet_buttons'] = {}
+        for data in tablet_buttons:
+            config['actions']['tablet_buttons'][data['id']] = data['action'] 
+    except:
+        print('The \'./config.yaml\' file does not have the actions named \'{}\''.format(action))
         exit()
 
 # MAIN --------------------------------------------------------------------------------------------
@@ -116,6 +122,9 @@ def load_config(action):
 if __name__ == '__main__':
     args = get_args()
 
+    load_config('krita')
+    pprint(config)
+    
     # Define the events that will be triggered by the custom xinput device that we will create
     pen_events = {
         # Defining a pressure sensitive pen tablet area with 2 stylus buttons and no eraser
@@ -135,8 +144,6 @@ if __name__ == '__main__':
         #ecodes.EV_MSC: [ecodes.MSC_SCAN], #not sure why, but it appears to be needed
     }
 
-    #load_config('krita')
-    
     # Try to get a reference to the USB we need
     dev = usb.core.find(idVendor=0x256c, idProduct=0x006e)
     if not dev:

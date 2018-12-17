@@ -1,0 +1,43 @@
+{
+    "pen": {
+        "max_x": 58752,
+        "max_y": 33048,
+        "max_pressure": 8191,
+        "max_tilt_x": 60,
+        "max_tilt_y": 60,
+        "resolution": 5080
+    },
+    "pressure_curve": [
+        { "y": 0 },
+        { "x": 0.5, "y": 0.5 },
+        { "x": 0.5, "y": 0.5 },
+        { "y": 1 }
+    ],
+    "actions": {
+        "krita": {
+            "pen_click": "key a",
+            "pen_buttons": [
+                "key b",
+                "key c"
+            ],
+            "tablet_buttons": [
+                { "id": 1, "action": "key d" },
+                { "id": 2, "action": "key e" },
+                { "id": 4, "action": "key f" },
+                { "id": 8, "action": "key g" },
+                { "id": 16, "action": "key h" }
+            ],
+            "tablet_scrollbar_increase": "key i",
+            "tablet_scrollbar_decrease": "key j",
+            "tablet_scrollbar": [
+                "key i",
+                "key j",
+                "key k",
+                "key l",
+                "key m",
+                "key n",
+                "key o"
+            ]
+        }
+    }
+}
