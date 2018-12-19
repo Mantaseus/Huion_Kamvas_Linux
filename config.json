@@ -15,20 +15,21 @@
     ],
     "actions": {
         "krita": {
-            "pen_click": "",
-            "pen_button_1": "key B",
-            "pen_button_2": "key Ctrl",
+            "pen_touch": "KEY_A",
+            "pen_button_1": "KEY_B",
+            "pen_button_1_touch": "KEY_LEFTSHIFT+KEY_B",
+            "pen_button_2": "KEY_C",
+            "pen_button_2_touch": "KEY_LEFTSHIFT+KEY_C",
             "tablet_buttons": [
-                { "id": 1, "action": "key D" },
-                { "id": 2, "action": "key E" },
-                { "id": 4, "action": "key F" },
-                { "id": 8, "action": "key G" },
-                { "id": 16, "action": "key H" }
+                "KEY_D",
+                "KEY_E",
+                "KEY_F",
+                "KEY_G",
+                "KEY_H"
             ],
-            "tablet_scrollbar_increase": "key I",
-            "tablet_scrollbar_decrease": "key J",
+            "tablet_scrollbar_increase": "KEY_A",
+            "tablet_scrollbar_decrease": "KEY_B",
             "tablet_scrollbar": [
-                "",
                 "",
                 "",
                 "",
