@@ -14,11 +14,15 @@ import json
 # GLOBALS -----------------------------------------------------------------------------------------
 
 ACTION_SPLIT_CHAR = '+'
+CURVE_POINTS = 10
 
 previous_scrollbar_state = 0
 previous_tablet_btn = 0
 previous_pen_state = 0
 previous_action = ''
+
+pressure_curve_points = []
+
 config = {}
 
 # HELPER FUNCTIONS --------------------------------------------------------------------------------
@@ -88,8 +92,7 @@ def run_action(new_action):
 def load_config(action):
     with open('config.json', 'r') as json_file:
         config_load = json.load(json_file)
-    pprint(config_load)
-    #import pdb; pdb.set_trace()
+
     # Get the pen config
     try: 
         config['pen'] = config_load['pen']
@@ -135,24 +138,57 @@ def get_required_ecodes():
                 else: 
                     required_ecodes.append(value)
 
-    pprint(required_ecodes)
     return [ecodes.ecodes[required_ecode] for required_ecode in required_ecodes]
 
-def is_list_within_list(list_var):
-    try:
-        if type(list_var[0]) is list:
-            return True
-    except:
-        return False
-    return False
+def generate_pressure_curve_points():
+    # Generate the bezier curve based on t using the definition here: https://en.wikipedia.org/wiki/B%C3%A9zier_curve
+    # This algorithm uses t which is not the same as x or y values and is more of a sampling point
+    # along the length of the curve
+    curve_t_x = []
+    curve_t_y = []
+    for i in range(0, CURVE_POINTS+1):
+        t = i/CURVE_POINTS
+        a = (1-t)**3
+        b = 3 * t * (1-t)**2
+        c = 3 * t**2 * (1-t)
+        d = t**3
+
+        curve_t_x.append((
+            b*config['pressure_curve'][1]['x'] + 
+            c*config['pressure_curve'][2]['x'] + 
+            d
+        )*config['pen']['max_pressure'])
+        curve_t_y.append((
+            a*config['pressure_curve'][0]['y'] + 
+            b*config['pressure_curve'][1]['y'] + 
+            c*config['pressure_curve'][2]['y'] + 
+            d*config['pressure_curve'][3]['y']
+        )*config['pen']['max_pressure'])
+
+    # Generate the bezier curve based on x using interpolation
+    # x is the index of the list and the corresponding value will be the y value
+    # There will be a corresponsing value on the curve for every pressure value
+    # input pressure value will the the index of the pressure curve
+    for x in range(0, config['pen']['max_pressure']+1):
+        if x in curve_t_x:
+            # If we have an exact x match on curve then no need for interpolation
+            pressure_curve_points.append(int(curve_t_y[curve_t_x.index(x)]))
+        else:
+            # We will need to linear interpolate
+            # Find the interpolation range
+            for i in range(0, len(curve_t_x)-1):
+                if x > curve_t_x[i] and x < curve_t_x[i + 1]:
+                    interpolated_y = ((x - curve_t_x[i]) / (curve_t_x[i+1] - curve_t_x[i])) * (curve_t_y[i+1]-curve_t_y[i]) + curve_t_y[i]
+                    pressure_curve_points.append(int(interpolated_y))
+                    break
 
 # MAIN --------------------------------------------------------------------------------------------
 
 if __name__ == '__main__':
+    # Setup
     args = get_args()
-
     load_config('krita')
-    pprint(config)
+    generate_pressure_curve_points()
    
     # Define the events that will be triggered by the custom xinput device that we will create
     pen_events = {
@@ -224,7 +260,7 @@ if __name__ == '__main__':
                 # Send data to the Xinput device so that cursor responds
                 vpen.write(ecodes.EV_ABS, ecodes.ABS_X, pen_x)
                 vpen.write(ecodes.EV_ABS, ecodes.ABS_Y, pen_y)
-                vpen.write(ecodes.EV_ABS, ecodes.ABS_PRESSURE, pen_pressure)
+                vpen.write(ecodes.EV_ABS, ecodes.ABS_PRESSURE, pressure_curve_points[pen_pressure])
                 vpen.write(ecodes.EV_ABS, ecodes.ABS_TILT_X, pen_tilt_x)
                 vpen.write(ecodes.EV_ABS, ecodes.ABS_TILT_Y, pen_tilt_y)
 
@@ -290,10 +326,11 @@ if __name__ == '__main__':
                 print_array(data, 8)
     
             if args['-v']:
-                print("X {} Y {} PRESS {}          ".format(
+                print("X {} Y {} PRESS: {} > {}          ".format(
                     pen_x, 
                     pen_y, 
                     pen_pressure, 
+                    pressure_curve_points[pen_pressure]
                 ), end='\r')
         except usb.core.USBError as e:
             data = None
