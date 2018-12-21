@@ -43,13 +43,30 @@ def get_tablet_info(device, print_data=False):
 
 def get_args():
     parser = argparse.ArgumentParser(description='A user space driver for using Huion Graphics tablets with Linux')
-    parser.add_argument('-a', required=True, type=str, help='The name of the group of actions to perform when a certain event occurs as defined in the config')
+
+    parser.add_argument('-a', type=str, help='The name of the group of actions to perform when a certain event occurs as defined in the config')
     parser.add_argument('-r', action='store_true', help='Print out the raw byte data from the USB')
     parser.add_argument('-p', action='store_true', help='Print out the device information')
     parser.add_argument('-c', action='store_true', help='Print the calculated X, Y and pressure values from the pen')
+    parser.add_argument('-ls', action='store_true', help='Print the available action groups available in the config')
     
-    args = vars(parser.parse_args())
+    # Check if we got any input piped in
+    if not sys.stdin.isatty():
+        # Input was piped in and it is assumed that the first line of the piped input is action
+        # group name
+        input = sys.stdin.readline().rstrip()
+        args = vars(parser.parse_args(['-a', input]))
+    else:
+        # No input was piped in so look for arguments from the user
+        args = vars(parser.parse_args())
+
     return args
+
+def print_available_actions():
+    with open('config.json', 'r') as json_file:
+        config_load = json.load(json_file)
+        for key in config_load['actions']:
+            print(key)
 
 def load_config(action):
     with open('config.json', 'r') as json_file:
@@ -73,7 +90,7 @@ def load_config(action):
     try:
         config['actions'] = config_load['actions'][action]
     except:
-        print('The \'./config.yaml\' file does not have the actions named \'{}\''.format(action))
+        print('The \'./config.yaml\' file does not have the action group named \'{}\'. Please specify a valid action group name.'.format(action))
         exit()
 
 def run_action(new_action):
@@ -178,11 +195,17 @@ def generate_pressure_curve_points():
 # MAIN --------------------------------------------------------------------------------------------
 
 if __name__ == '__main__':
-    # Setup
     args = get_args()
+
+    # Print action groups in the config
+    if args['ls']:
+        print_available_actions()
+        exit()
+   
+    # Setup
     load_config(args['a'])
     generate_pressure_curve_points()
-   
+
     # Define the events that will be triggered by the custom xinput device that we will create
     pen_events = {
         # Defining a pressure sensitive pen tablet area with 2 stylus buttons and no eraser
