@@ -31,11 +31,6 @@ This script uses a simple configuration file to give you control over how your g
         ```
         sudo pacman -S xf86-input-input-evdev
         ```
-    - [xdotool](https://www.semicomplete.com/projects/xdotool/): Allows you to simulate keyboard input and other mouse activities. This will be used by the script to trigger user defined actions (in ./config.json file) when a certain button is pressed on the graphics tablet
-        
-        ```
-        sudo pacman -S xdotool
-        ```
 - Python packages
     - [pyusb](https://walac.github.io/pyusb/): Used for communicating with the USB device and reading the data packets from the graphics tablet
     
@@ -98,8 +93,14 @@ You can edit the `./config.json` file to define your custom settings for your gr
     - Make sure that the x and y values for the points is limited between 0 and 1 inclusive
     - The first and last point are fixed at x=0 and x=1
 - Actions that must be performed when a button is clicked
-    - The script uses `xdotool` to perform these actions so the values for these actions can be any commands accepted by `xdotool`
-        - For example: Use `key a` to effectively execute `xdotool key a` which simulates the presseing of the `a` key on your keyboard
+    - The script uses `evdev` events to perform these actions so the values for these actions can be any commands starting with `KEY_` or `BTN_`. For example:
+        - Use `KEY_A` to effectively simulate the presseing of the `a` key on your keyboard
+        - You can also combine events like `KEY_LEFTSHIFT+KEY_A` to effectively press `Shift+a` when that action is fired
+    - You can use the `keyboard_events.py` to observe  which evdev events are fired when you press keys on your keyboard. Run it using the following command
+
+        ```
+        sudo python keyboard_events.py
+        ```
     - Leave the actions field empy if you don't to perform any action for that even
         - For example: You might not want actions to be performed when you touch the pen to the screen and want it behave like a normal mouse click. But the option if available in case you do want perform an action in that case.
 

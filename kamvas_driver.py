@@ -1,15 +1,14 @@
 from __future__ import print_function
 from pprint import pprint
 
+from evdev import UInput, ecodes, AbsInfo
 import usb.core
 import usb.util
 import sys
-from evdev import UInput, ecodes, AbsInfo
 import time
-import subprocess
 import math
-
 import json
+import argparse
 
 # GLOBALS -----------------------------------------------------------------------------------------
 
@@ -27,36 +26,55 @@ config = {}
 
 # HELPER FUNCTIONS --------------------------------------------------------------------------------
 
-def print_array(array, spacing=5):
+def print_raw_data(data, spacing=5):
     string = ''
-    for element in array:
+    for element in data:
         string = string + str(element) + ' '*(spacing-len(str(element)))
     print(string)
 
-def print_tablet_info(device):
-    print('TABLET INFORMATION -------------------------------------------------')
+def get_tablet_info(device, print_data=False):
     for bRequest in range(256):
         try:
             result = usb.util.get_string(dev, bRequest)
-            print('{}: {}'.format(hex(bRequest), result))
+            if print_data:
+                print('{}: {}'.format(hex(bRequest), result))
         except:
             pass
-    print('--------------------------------------------------------------------')
 
 def get_args():
-    args = {}
-
-    if '-v' in sys.argv:
-        args['-v'] = True
-    else:
-        args['-v'] = False
-
-    if '-t' in sys.argv:
-        args['-t'] = True
-    else:
-        args['-t'] = False
-
+    parser = argparse.ArgumentParser(description='A user space driver for using Huion Graphics tablets with Linux')
+    parser.add_argument('-a', required=True, type=str, help='The name of the group of actions to perform when a certain event occurs as defined in the config')
+    parser.add_argument('-r', action='store_true', help='Print out the raw byte data from the USB')
+    parser.add_argument('-p', action='store_true', help='Print out the device information')
+    parser.add_argument('-c', action='store_true', help='Print the calculated X, Y and pressure values from the pen')
+    
+    args = vars(parser.parse_args())
     return args
+
+def load_config(action):
+    with open('config.json', 'r') as json_file:
+        config_load = json.load(json_file)
+
+    # Get the pen config
+    try: 
+        config['pen'] = config_load['pen']
+    except:
+        print('The \'./config.yaml\' file does not have the \'pen\' property')
+        exit()
+
+    # Get the pressure curve
+    try:
+        config['pressure_curve'] = config_load['pressure_curve']
+    except:
+        print('The \'./config.yaml\' file does not have the \'pressure_curve\' property')
+        exit()
+
+    # Get the actions config
+    try:
+        config['actions'] = config_load['actions'][action]
+    except:
+        print('The \'./config.yaml\' file does not have the actions named \'{}\''.format(action))
+        exit()
 
 def run_action(new_action):
     def execute(action_text, press_type):
@@ -88,31 +106,6 @@ def run_action(new_action):
         execute(new_action, 1)
 
     previous_action = new_action
-
-def load_config(action):
-    with open('config.json', 'r') as json_file:
-        config_load = json.load(json_file)
-
-    # Get the pen config
-    try: 
-        config['pen'] = config_load['pen']
-    except:
-        print('The \'./config.yaml\' file does not have the \'pen\' property')
-        exit()
-
-    # Get the pressure curve
-    try:
-        config['pressure_curve'] = config_load['pressure_curve']
-    except:
-        print('The \'./config.yaml\' file does not have the \'pressure_curve\' property')
-        exit()
-
-    # Get the actions config
-    try:
-        config['actions'] = config_load['actions'][action]
-    except:
-        print('The \'./config.yaml\' file does not have the actions named \'{}\''.format(action))
-        exit()
 
 def get_required_ecodes():
     required_ecodes = [
@@ -187,18 +180,13 @@ def generate_pressure_curve_points():
 if __name__ == '__main__':
     # Setup
     args = get_args()
-    load_config('krita')
+    load_config(args['a'])
     generate_pressure_curve_points()
    
     # Define the events that will be triggered by the custom xinput device that we will create
     pen_events = {
         # Defining a pressure sensitive pen tablet area with 2 stylus buttons and no eraser
-        ecodes.EV_KEY: get_required_ecodes(), #[
-        #    ecodes.KEY_A, 
-        #    ecodes.BTN_TOUCH, 
-        #    ecodes.BTN_TOOL_PEN, 
-        #    ecodes.BTN_STYLUS, 
-        #    ecodes.BTN_STYLUS2],
+        ecodes.EV_KEY: get_required_ecodes(),
         ecodes.EV_ABS: [
             #AbsInfo input: value, min, max, fuzz, flat, resolution
             (ecodes.ABS_X, AbsInfo(0,0,config['pen']['max_x'],0,0,config['pen']['resolution'])),         
@@ -226,7 +214,7 @@ if __name__ == '__main__':
     
     # The method needs to be called or otherwise the tablet may not be in the correct mode
     # and no output might be seen from the first endpoint after a tablet reboot
-    print_tablet_info(dev)
+    get_tablet_info(dev, args['p'])
    
     # Seems like we need to try and read atleast once from the second endpoint on the device
     # or else the output from the first endpoint may get blocked on a tablet reboot 
@@ -237,18 +225,17 @@ if __name__ == '__main__':
 
     # Create a virtual pen in /dev/input/ so that it shows up as a XInput device
     vpen = UInput(events=pen_events, name="kamvas-pen", version=0x3)
-    print('huion kamvas GT191 driver should now be running')
     
     # Get a reference to the end that the tablet's output will be read from 
-    endpoint_0 = dev[0][(0,0)][0]
+    usb_endpoint = dev[0][(0,0)][0]
     
     # Read the tablet output in an infinite loop
     while True:
-        #time.sleep(1)
         try:
             # Read data from the USB
-            data = dev.read(endpoint_0.bEndpointAddress,endpoint_0.wMaxPacketSize)
+            data = dev.read(usb_endpoint.bEndpointAddress, usb_endpoint.wMaxPacketSize)
 
+            # Only calculate these values if the event is a pen event and not tablet event
             if data[1] in [128, 129, 130, 131, 132, 133]:
                 # Calculate the values            
                 pen_x = (data[3] << 8) + (data[2])
@@ -270,23 +257,23 @@ if __name__ == '__main__':
 
             # Pen click
             if data[1] == 129:
-                run_action(config['actions'].get('pen_touch', ''))#, ecodes.BTN_TOUCH)
+                run_action(config['actions'].get('pen_touch', ''))
 
             # Pen button 1
             if data[1] == 130:
-                run_action(config['actions'].get('pen_button_1', ''))#, ecodes.BTN_STYLUS)
+                run_action(config['actions'].get('pen_button_1', ''))
 
             # Pen button 1 with pen touch
             if data[1] == 131:
-                run_action(config['actions'].get('pen_button_1_touch', ''))#, ecodes.BTN_STYLUS)
+                run_action(config['actions'].get('pen_button_1_touch', ''))
 
             # Pen button 2
             if data[1] == 132:
-                run_action(config['actions'].get('pen_button_2', ''))#, ecodes.BTN_STYLUS2)
+                run_action(config['actions'].get('pen_button_2', ''))
 
             # Pen button 2 with pen touch
             if data[1] == 133:
-                run_action(config['actions'].get('pen_button_2_touch', ''))#, ecodes.BTN_STYLUS2)
+                run_action(config['actions'].get('pen_button_2_touch', ''))
 
             # Tablet buttons
             if data[1] == 224:
@@ -317,23 +304,25 @@ if __name__ == '__main__':
                     
                 previous_scrollbar_state = scrollbar_state
 
-            
-            #vpen.write(ecodes.EV_KEY, ecodes.BTN_STYLUS, pen_btn1_clicked and 1 or 0)
-            #vpen.write(ecodes.EV_KEY, ecodes.BTN_STYLUS2, pen_btn2_clicked and 1 or 0)
+            # Dispatch the evdev events
             vpen.syn()
             
-            if args['-t']:
-                print_array(data, 8)
+            if args['r']:
+                print_data(data, 6)
     
-            if args['-v']:
-                print("X {} Y {} PRESS: {} > {}          ".format(
+            if args['c']:
+                print("X {} Y {} PRESS: {} -> {}          ".format(
                     pen_x, 
                     pen_y, 
                     pen_pressure, 
                     pressure_curve_points[pen_pressure]
                 ), end='\r')
         except usb.core.USBError as e:
+            # The usb read probably timed out for this cycle. Thats ok
             data = None
             if e.args == ('Operation timed out',):
                 print(e, file=sys.stderr)
+        except KeyboardInterrupt:
+            # The user probably pressed "Ctrl+c" to close the program, so, close it cleanly
+            exit()
         
