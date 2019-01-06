@@ -55,10 +55,13 @@ def get_args():
         # Input was piped in and it is assumed that the first line of the piped input is action
         # group name
         input = sys.stdin.readline().rstrip()
-        args = vars(parser.parse_args(['-a', input]))
-    else:
-        # No input was piped in so look for arguments from the user
-        args = vars(parser.parse_args())
+        if input:
+            args = vars(parser.parse_args(['-a', input]))
+            return args
+    
+    # If we got to this point then we probably didn;t get any valid input from stdin
+    # So, look for arguments from the user
+    args = vars(parser.parse_args())
 
     return args
 
