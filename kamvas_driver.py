@@ -334,7 +334,7 @@ if __name__ == '__main__':
             vpen.syn()
             
             if args['r']:
-                print_data(data, 6)
+                print_raw_data(data, 6)
     
             if args['c']:
                 print("X {} Y {} PRESS: {} -> {}          ".format(
