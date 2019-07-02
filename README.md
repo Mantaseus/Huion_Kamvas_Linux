@@ -65,22 +65,30 @@ This script uses a simple configuration file to give you control over how your g
 
 ## Usage
 
-- Run the driver using
+- To run the driver and ask it to use the `krita` action group from your `config.json` use the following command
 
     ```
-    sudo python kamvas_driver.py
+    sudo python kamvas_driver.py -a krita
     ```
+- To list the valid action group names found in `config.json`
 
-    - The script will output some tablet information and you should be able to control the mouse cursor using the graphics tablet and do all the things you would expect with the graphics tablet
+    ```
+    sudo python kamvas_driver.py -ls
+    ```
+- To try and print information about the connected device
+
+    ```
+    sudo python kamvas_driver.py -p
+    ```
 - If you want to output the raw X, Y position and pressure values to the screen then you can use the following commands
 
     ```
-    sudo python kamvas_driver.py -v
+    sudo python kamvas_driver.py -c
     ```
 - To print out the raw byte data from the USB use the following command
     
     ```
-    sudo python kamvas_driver.py -t
+    sudo python kamvas_driver.py -r
     ```
 
 ## Configuration
@@ -103,6 +111,7 @@ You can edit the `./config.json` file to define your custom settings for your gr
         ```
     - Leave the actions field empy if you don't to perform any action for that even
         - For example: You might not want actions to be performed when you touch the pen to the screen and want it behave like a normal mouse click. But the option if available in case you do want perform an action in that case.
+    - You can also define multiple action groups. See the `config.json` for example
 
 ## Troubleshooting
 
@@ -111,7 +120,7 @@ You can edit the `./config.json` file to define your custom settings for your gr
     - Each byte represents a certain parameter
         - For example: For the Huion Kamvas Pro 13 the `x_pos_msb = data_packet[3]` and `x_pos_lsb = data_packet[2]`
     - It is possible that your graphics tablet arranges its data in a different way
-    - You can use `-t` optional argument when running the script to print the raw byte packets
+    - You can use `-r` optional argument when running the script to print the raw byte packets
         - Each column represents a piece of data being sent by the tablet 
     - Observe how the values change when you perform certain actions
         - For example: Try to slowly move the pen from left to right and see how the values in the packet change. The values that change are most likely related to the X postion. Of those values, the byte changes more slowly is likely to be the MSB and the one that changes faster is likely to be the LSB.
