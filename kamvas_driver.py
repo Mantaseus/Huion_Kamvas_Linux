@@ -344,10 +344,12 @@ if __name__ == '__main__':
                     pressure_curve_points[pen_pressure]
                 ), end='\r')
         except usb.core.USBError as e:
+            if e.args[0] == 19:
+                print('Device has been disconnected. Exiting ...')
+                exit()
+
             # The usb read probably timed out for this cycle. Thats ok
             data = None
-            if e.args == ('Operation timed out',):
-                print(e, file=sys.stderr)
         except KeyboardInterrupt:
             # The user probably pressed "Ctrl+c" to close the program, so, close it cleanly
             exit()
