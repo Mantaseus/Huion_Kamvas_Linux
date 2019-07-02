@@ -98,8 +98,8 @@ You can edit the `./config.json` file to define your custom settings for your gr
 - Pressure Curve 
     - A simple cubic bezier curve
     - Define the 4 points needed to describe the bezier curve
-    - Make sure that the x and y values for the points is limited between 0 and 1 inclusive
-    - The first and last point are fixed at x=0 and x=1
+    - Make sure that the x and y values for the points are limited between 0 and 1 inclusive
+    - The first and last points are fixed at x=0 and x=1
 - Actions that must be performed when a button is clicked
     - The script uses `evdev` events to perform these actions so the values for these actions can be any commands starting with `KEY_` or `BTN_`. For example:
         - Use `KEY_A` to effectively simulate the presseing of the `a` key on your keyboard
@@ -111,7 +111,7 @@ You can edit the `./config.json` file to define your custom settings for your gr
         ```
     - Leave the actions field empy if you don't to perform any action for that even
         - For example: You might not want actions to be performed when you touch the pen to the screen and want it behave like a normal mouse click. But the option if available in case you do want perform an action in that case.
-    - You can also define multiple action groups. See the `config.json` for example
+    - You can also define multiple action groups. See the `config.json` to see an example.
 
 ## Troubleshooting
 
