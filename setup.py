@@ -32,5 +32,6 @@ setuptools.setup(
         'tabulate',
         'pyusb',
         'evdev',
+        'pyyaml',
     ],
 )
