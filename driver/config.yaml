@@ -5,8 +5,10 @@ pen:
     max_tilt_x: 60
     max_tilt_y: 60
     resolution: 5080
+default_display: HDMI1
+default_action: program_1
 actions:
-    krita:
+    program_1:
         pen_touch: BTN_TOUCH
         pen_button_1: KEY_LEFTCTRL
         pen_button_1_touch: KEY_LEFTCTRL+BTN_TOUCH
@@ -28,7 +30,7 @@ actions:
             - ''
             - ''
             - ''
-    blender:
+    program_2:
         pen_touch: BTN_TOUCH
         pen_button_1: KEY_LEFTCTRL
         pen_button_1_touch: KEY_LEFTCTRL+BTN_TOUCH

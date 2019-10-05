@@ -26,6 +26,7 @@ Options:
 from __future__ import print_function
 import os
 import sys
+import shutil
 
 from docopt import docopt
 import evdev
@@ -34,6 +35,7 @@ import usb.core
 # CONSTANTS ---------------------------------------------------------------------------------------
 
 CONFIG_PATH = os.path.expanduser('~/.kamvas_config.yaml')
+DEFAULT_CONFIG_PATH = 'driver/config.yaml'
 
 # HANDLERS ----------------------------------------------------------------------------------------
 
@@ -59,7 +61,12 @@ def handle_evdev_test(event_path):
         exit()
 
 def handle_create_default_config():
-    pass
+    if os.path.isfile(CONFIG_PATH):
+        print('New config not created. Config file already exists at {}.'.format(CONFIG_PATH))
+        return
+
+    shutil.copyfile(DEFAULT_CONFIG_PATH, CONFIG_PATH)
+    print('New config file created at {}'.format(CONFIG_PATH))
 
 # MAIN --------------------------------------------------------------------------------------------
 
@@ -86,7 +93,7 @@ def run_main():
         return
 
     if args['--create-default-config']:
-        handle_create_default_congig()
+        handle_create_default_config()
         return
 
     print(__doc__)

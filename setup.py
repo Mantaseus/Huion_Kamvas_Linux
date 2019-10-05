@@ -17,6 +17,7 @@ setuptools.setup(
     license = 'MIT',
 
     packages = ['driver'],
+    package_data={'driver': ['config.yaml']},
     entry_points = {
         'console_scripts': [
             'kamvas = driver.cli:run_main',
