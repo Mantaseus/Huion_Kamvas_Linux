@@ -7,12 +7,6 @@
         "max_tilt_y": 60,
         "resolution": 5080
     },
-    "pressure_curve": [
-        { "y": 0 },
-        { "x": 0, "y": 0.25 },
-        { "x": 0.5, "y": 0.5 },
-        { "y": 1 }
-    ],
     "actions": {
         "krita": {
             "pen_touch": "BTN_TOUCH",
