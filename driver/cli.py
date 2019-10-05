@@ -1,16 +1,26 @@
 """
 Usage:
+    kamvas
+        [ -t=<val> | --evdev-test=<val> ]
+        [ -c | --create-default-config ]
     kamvas start
         [ -a=<val> | --action=<val> ]
     kamvas stop
     kamvas restart
         [ -a=<val> | --action=<val> ]
-    kamvas evdev-test <unix_event_path>
 
 Options:
     -a=<val>, --action-<val>
         Define which group of button mappings you want to use.
         The button mappings are defined in {config_path}
+    -t=<val>, --evdev-test=<val> 
+        Print out all the events that happen on your system for
+        a given event file. The event files are usually located
+        in `/dev/input/` directory. This usually required sudo
+        access
+    -c, --create-default-config
+        Create a default config file at {config_path}
+        if it doesn't already exist
 """
 
 from __future__ import print_function
@@ -48,6 +58,9 @@ def handle_evdev_test(event_path):
         print('Exiting')
         exit()
 
+def handle_create_default_config():
+    pass
+
 # MAIN --------------------------------------------------------------------------------------------
 
 def run_main():
@@ -68,9 +81,15 @@ def run_main():
         handle_start()
         return
 
-    if args['evdev-test']:
-        handle_evdev_test(args['<unix_event_path>'])
+    if args['--evdev-test']:
+        handle_evdev_test(args['--evdev-test'])
         return
+
+    if args['--create-default-config']:
+        handle_create_default_congig()
+        return
+
+    print(__doc__)
 
 if __name__ == '__main__':
     run_main()
