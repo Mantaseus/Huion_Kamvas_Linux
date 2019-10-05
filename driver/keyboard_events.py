@@ -12,7 +12,7 @@ import usb.core
 
 dev = evdev.InputDevice('/dev/input/event23')
 if not dev:
-    print("could not find device. The device may alread be open", file=sys.stderr)
+    print("could not find device. The device may already be open", file=sys.stderr)
     sys.exit(1)
 
 for event in dev.read_loop():
