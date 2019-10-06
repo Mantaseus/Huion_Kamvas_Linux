@@ -50,20 +50,23 @@ tablet_info = []
 def get_args():
     args = docopt(__doc__)
     
+    args['<usb_vendor_id>'] = int(args['<usb_vendor_id>'])
+    args['<usb_product_id>'] = int(args['<usb_product_id>'])
+
     try:
-        args['pen'] = json.load(args['<pen_data>'])
+        args['pen'] = json.loads(args['<pen_data>'])
     except:
         print('Error while loading <pen_data> as a JSON object')
         exit()
 
     try:
-        args['action_ids'] = json.load(args['<action_ids>'])
+        args['action_ids'] = json.loads(args['<action_ids>'])
     except:
         print('Error while loading <pen_data> as a JSON object')
         exit()
 
     try:
-        args['actions'] = json.load(args['<action_data>'])
+        args['actions'] = json.loads(args['<action_data>'])
     except:
         print('Error while loading <action_data> as a JSON object')
         exit()
@@ -129,6 +132,8 @@ def get_required_ecodes():
         'BTN_STYLUS2'
     ]
 
+    from pprint import pprint
+    pprint(args)
     # Get the ecodes for pen buttons
     for value in args['actions'].values():
         if type(value) is list:
@@ -171,7 +176,7 @@ def run_main():
     }
 
     # Try to get a reference to the USB we need
-    dev = usb.core.find(idVendor=0x256c, idProduct=0x006e)
+    dev = usb.core.find(idVendor=args['<usb_vendor_id>'], idProduct=args['<usb_product_id>'])
     if not dev:
         print("could not find device. The device may alread be open", file=sys.stderr)
         sys.exit(1)
@@ -197,7 +202,8 @@ def run_main():
         pass
 
     # Create a virtual pen in /dev/input/ so that it shows up as a XInput device
-    vpen = UInput(events=pen_events, name="kamvas-pen", version=0x3)
+    global vpen
+    vpen = UInput(events=pen_events, name=args['<xinput_name>'], version=0x3)
     
     # Get a reference to the end that the tablet's output will be read from 
     usb_endpoint = dev[0][(0,0)][0]
@@ -205,11 +211,22 @@ def run_main():
     # USB data action IDs that still lead to position data
     position_action_ids = [
         args['action_ids']['normal'],
-        args['action_ids']['pen_click'],
+        args['action_ids']['pen_touch'],
         args['action_ids']['pen_button_1'],
         args['action_ids']['pen_button_1_touch'],
         args['action_ids']['pen_button_2'],
         args['action_ids']['pen_button_2_touch'],
+    ]
+
+    action_ids = [
+        args['action_ids']['normal'],
+        args['action_ids']['pen_touch'],
+        args['action_ids']['pen_button_1'],
+        args['action_ids']['pen_button_1_touch'],
+        args['action_ids']['pen_button_2'],
+        args['action_ids']['pen_button_2_touch'],
+        args['action_ids']['tablet_buttons'],
+        args['action_ids']['scrollbar'],
     ]
     
     # Read the tablet output in an infinite loop
@@ -234,32 +251,39 @@ def run_main():
                 vpen.write(ecodes.EV_ABS, ecodes.ABS_TILT_X, pen_tilt_x)
                 vpen.write(ecodes.EV_ABS, ecodes.ABS_TILT_Y, pen_tilt_y)
 
+                if args['--print-calculated-data']:
+                    print("X {} Y {} PRESS {}          ".format(
+                        pen_x, 
+                        pen_y, 
+                        pen_pressure, 
+                    ), end='\r')
+
             # Reset any actions because this code means that nothing is happening
-            if data[1] == args['action_ids']['normal']:
+            if data[1] == action_ids[0]:
                 run_action('')
 
             # Pen click
-            if data[1] == args['action_ids']['pen_touch']:
+            if data[1] == action_ids[0]:
                 run_action(args['actions'].get('pen_touch', ''))
 
             # Pen button 1
-            if data[1] == args['action_ids']['pen_button_1']:
+            if data[1] == action_ids[1]:
                 run_action(args['actions'].get('pen_button_1', ''))
 
             # Pen button 1 with pen touch
-            if data[1] == args['action_ids']['pen_button_1_touch']:
+            if data[1] == action_ids[2]:
                 run_action(args['actions'].get('pen_button_1_touch', ''))
 
             # Pen button 2
-            if data[1] == args['action_ids']['pen_button_2']:
+            if data[1] == action_ids[3]:
                 run_action(args['actions'].get('pen_button_2', ''))
 
             # Pen button 2 with pen touch
-            if data[1] == args['action_ids']['pen_button_2_touch']:
+            if data[1] == action_ids[4]:
                 run_action(args['actions'].get('pen_button_2_touch', ''))
 
             # Tablet buttons
-            if data[1] == args['action_ids']['tablet_button']:
+            if data[1] == action_ids[5]:
                 if data[4]:
                     btn_index = int(math.log(data[4],2))
                     if previous_tablet_btn != data[4] and args['actions'].get('tablet_buttons', ''):
@@ -270,7 +294,7 @@ def run_main():
                     previous_tablet_btn = 0
 
             # Scrollbar
-            if data[1] == args['action_ids']['scrollbar']:
+            if data[1] == action_ids[6]:
                 scrollbar_state = data[5]
 
                 if scrollbar_state:
@@ -293,12 +317,6 @@ def run_main():
             if args['--print-usb-data']:
                 print_raw_data(data, 6)
     
-            if args['--print-calculated-data']:
-                print("X {} Y {} PRESS {}          ".format(
-                    pen_x, 
-                    pen_y, 
-                    pen_pressure, 
-                ), end='\r')
         except usb.core.USBError as e:
             if e.args[0] == 19:
                 print('Device has been disconnected. Exiting ...')

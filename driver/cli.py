@@ -5,27 +5,13 @@ Usage:
         [ -c | --create-default-config ]
     kamvas start
         [ -a=<val> | --action=<val> ]
-        [ -f | --start-in-foreground ]
-        [ -r | --print-usb-data ]
-        [ -c | --print-computed-values ]
     kamvas stop
-    kamvas restart
-        [ -a=<val> | --action=<val> ]
-        [ -f | --start-in-foreground ]
+    kamvas restart [ -a=<val> | --action=<val> ] [ -f | --start-in-foreground ]
         [ -r | --print-usb-data ]
         [ -c | --print-computed-values ]
     kamvas status
 
 Options:
-    -f, --start-in-foreground
-        Start the driver service in foreground instead if you
-        want to see the debug USB data
-    -r, --print-usb-data
-        Only works with the `-f` option. Prints the raw USB data
-        to the screen
-    -c, --print-computed-values
-        Only works with the `-f` option. Prints the computed X,
-        Y and pressure values from the tablet
     -a=<val>, --action-<val>
         Define which group of button mappings you want to use.
         The button mappings are defined in {config_path}.
@@ -42,44 +28,66 @@ Options:
 """
 
 from __future__ import print_function
+from pprint import pprint
 import os
 import sys
 import shutil
+import subprocess
+import json
 
 from docopt import docopt
 import evdev
 import usb.core
+import yaml
 
 # CONSTANTS ---------------------------------------------------------------------------------------
 
 CONFIG_PATH = os.path.expanduser('~/.kamvas_config.yaml')
 DEFAULT_CONFIG_PATH = 'driver/config.yaml'
 
+DRIVER_SCRIPT = 'driver/kamvas_driver.py'
+
 # HELPRES -----------------------------------------------------------------------------------------
 
-def load_config(action):
-    with open('config.json', 'r') as json_file:
-        config_load = json.load(json_file)
+def load_config(action=''):
+    if not os.path.isfile(CONFIG_PATH):
+        raise Exception('Config file not found at {}. Create one using "kamvas -c"'.format(
+            CONFIG_PATH
+        ))
 
-    # Get the pen config
-    try: 
-        config['pen'] = config_load['pen']
-    except:
-        print('The \'./config.yaml\' file does not have the \'pen\' property')
-        exit()
+    with open(CONFIG_PATH, 'r') as yaml_file:
+        config = yaml.safe_load(yaml_file)
 
-    # Get the actions config
-    try:
-        config['actions'] = config_load['actions'][action]
-    except:
-        print('The \'./config.yaml\' file does not have the action group named \'{}\'. Please specify a valid action group name.'.format(action))
-        exit()
+        # Try to get the default action from the config
+        if not action:
+            action = config.get('default_action', '')
 
+        # If the default_action was also not available then throw an error
+        if not action:
+            raise Exception("You either need to define a 'default_action' in your config or use the 'kamvas -a' option to specify an action")
+        
+        config['actions'] = config['actions'][action]
+        return config
 
 # HANDLERS ----------------------------------------------------------------------------------------
 
 def handle_start():
-    pass
+    config = load_config()
+    commands = [
+        'sudo',
+        'python',
+        DRIVER_SCRIPT,
+        config['xinput_name'],
+        str(config['vendor_id']),
+        str(config['product_id']),
+        json.dumps(config['pen']),
+        json.dumps(config['action_ids']),
+        json.dumps(config['actions']),
+        '-c',
+    ]
+
+    subprocess.Popen(commands)
+    print('Started')
 
 def handle_stop():
     pass
