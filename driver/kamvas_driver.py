@@ -1,6 +1,6 @@
 """
 Usage:
-    kamvas_driver <xinput_name> <usb_vendor_id> <usb_product_id> <pen_data> <action_ids> <action_data>
+    kamvas_driver <xinput_name> <usb_vendor_id> <usb_product_id> <pen_data> <action_data>
         [ -r | --print-usb-data ]
         [ -c | --print-calculated-data ]
 
@@ -55,12 +55,6 @@ def get_args():
 
     try:
         args['pen'] = json.loads(args['<pen_data>'])
-    except:
-        print('Error while loading <pen_data> as a JSON object')
-        exit()
-
-    try:
-        args['action_ids'] = json.loads(args['<action_ids>'])
     except:
         print('Error while loading <pen_data> as a JSON object')
         exit()
@@ -132,8 +126,6 @@ def get_required_ecodes():
         'BTN_STYLUS2'
     ]
 
-    from pprint import pprint
-    pprint(args)
     # Get the ecodes for pen buttons
     for value in args['actions'].values():
         if type(value) is list:
@@ -208,27 +200,6 @@ def run_main():
     # Get a reference to the end that the tablet's output will be read from 
     usb_endpoint = dev[0][(0,0)][0]
 
-    # USB data action IDs that still lead to position data
-    position_action_ids = [
-        args['action_ids']['normal'],
-        args['action_ids']['pen_touch'],
-        args['action_ids']['pen_button_1'],
-        args['action_ids']['pen_button_1_touch'],
-        args['action_ids']['pen_button_2'],
-        args['action_ids']['pen_button_2_touch'],
-    ]
-
-    action_ids = [
-        args['action_ids']['normal'],
-        args['action_ids']['pen_touch'],
-        args['action_ids']['pen_button_1'],
-        args['action_ids']['pen_button_1_touch'],
-        args['action_ids']['pen_button_2'],
-        args['action_ids']['pen_button_2_touch'],
-        args['action_ids']['tablet_buttons'],
-        args['action_ids']['scrollbar'],
-    ]
-    
     # Read the tablet output in an infinite loop
     while True:
         try:
@@ -236,7 +207,7 @@ def run_main():
             data = dev.read(usb_endpoint.bEndpointAddress, usb_endpoint.wMaxPacketSize)
 
             # Only calculate these values if the event is a pen event and not tablet event
-            if data[1] in position_action_ids:
+            if data[1] in [128, 129, 130, 131, 132, 133]:
                 # Calculate the values            
                 pen_x = (data[3] << 8) + (data[2])
                 pen_y = (data[5] << 8) + data[4]
@@ -259,31 +230,31 @@ def run_main():
                     ), end='\r')
 
             # Reset any actions because this code means that nothing is happening
-            if data[1] == action_ids[0]:
+            if data[1] == 128:
                 run_action('')
 
             # Pen click
-            if data[1] == action_ids[0]:
+            if data[1] == 129:
                 run_action(args['actions'].get('pen_touch', ''))
 
             # Pen button 1
-            if data[1] == action_ids[1]:
+            if data[1] == 130:
                 run_action(args['actions'].get('pen_button_1', ''))
 
             # Pen button 1 with pen touch
-            if data[1] == action_ids[2]:
+            if data[1] == 131:
                 run_action(args['actions'].get('pen_button_1_touch', ''))
 
             # Pen button 2
-            if data[1] == action_ids[3]:
+            if data[1] == 132:
                 run_action(args['actions'].get('pen_button_2', ''))
 
             # Pen button 2 with pen touch
-            if data[1] == action_ids[4]:
+            if data[1] == 133:
                 run_action(args['actions'].get('pen_button_2_touch', ''))
 
             # Tablet buttons
-            if data[1] == action_ids[5]:
+            if data[1] == 224:
                 if data[4]:
                     btn_index = int(math.log(data[4],2))
                     if previous_tablet_btn != data[4] and args['actions'].get('tablet_buttons', ''):
@@ -294,7 +265,7 @@ def run_main():
                     previous_tablet_btn = 0
 
             # Scrollbar
-            if data[1] == action_ids[6]:
+            if data[1] == 240:
                 scrollbar_state = data[5]
 
                 if scrollbar_state:

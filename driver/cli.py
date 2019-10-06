@@ -45,7 +45,7 @@ import yaml
 CONFIG_PATH = os.path.expanduser('~/.kamvas_config.yaml')
 DEFAULT_CONFIG_PATH = 'driver/config.yaml'
 
-DRIVER_SCRIPT = 'driver/kamvas_driver.py'
+DRIVER_SCRIPT = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'kamvas_driver.py')
 
 # HELPRES -----------------------------------------------------------------------------------------
 
@@ -81,7 +81,6 @@ def handle_start():
         str(config['vendor_id']),
         str(config['product_id']),
         json.dumps(config['pen']),
-        json.dumps(config['action_ids']),
         json.dumps(config['actions']),
         '-c',
     ]
