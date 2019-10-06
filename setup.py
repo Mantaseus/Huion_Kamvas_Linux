@@ -34,5 +34,6 @@ setuptools.setup(
         'evdev',
         'pyyaml',
         'psutil',
+        'elevate',
     ],
 )

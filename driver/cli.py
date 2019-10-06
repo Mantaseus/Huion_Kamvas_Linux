@@ -37,6 +37,7 @@ import evdev
 import usb.core
 import yaml
 import psutil
+from elevate import elevate
 
 # CONSTANTS ---------------------------------------------------------------------------------------
 
@@ -86,6 +87,8 @@ def handle_start():
         return
 
     config = load_config()
+
+    # We need to run this as sudo because we can only have have access to USB as sudo
     commands = [
         'sudo',
         'python',
@@ -101,6 +104,10 @@ def handle_start():
     print('Started')
 
 def handle_stop():
+    # We will need sudo privileges to stop the driver because it was started as sudo
+    if os.getuid != 0:
+        elevate(graphical=False)
+
     for process in psutil.process_iter():
         cmdline = process.cmdline()
         if len(cmdline) < 3:
@@ -120,6 +127,10 @@ def handle_status():
         print('Driver is currently NOT running')
 
 def handle_evdev_test(event_path):
+    # We will need sudo privileges to access the event files
+    if os.getuid != 0:
+        elevate(graphical=False)
+
     try:
         dev = evdev.InputDevice(event_path)
         if not dev:
@@ -153,7 +164,7 @@ def run_main():
         if not driver_is_running():
             handle_start()
         else:
-            print('Driver is currently running. Stop it before starting it. Or just restart it')
+            print('Driver is currently running. Stop it before starting it.')
         return
 
     if args['stop']:
