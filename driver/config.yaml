@@ -1,3 +1,5 @@
+# Data about your tablet
+# You can get this information by observing the raw output from the USB
 pen:
     max_x: 58752
     max_y: 33048
@@ -5,10 +7,21 @@ pen:
     max_tilt_x: 60
     max_tilt_y: 60
     resolution: 5080
+action_ids:
+    normal: 128
+    pen_click: 129
+    pen_button_1: 130
+    pen_button_1_touch: 131
+    pen_button_2: 132
+    pen_button_2_touch: 133
+    tablet_buttons: 224 
+    scrollbar: 240
+
+# User preferences
 default_display: HDMI1
-default_action: program_1
+default_action: krita
 actions:
-    program_1:
+    krita:
         pen_touch: BTN_TOUCH
         pen_button_1: KEY_LEFTCTRL
         pen_button_1_touch: KEY_LEFTCTRL+BTN_TOUCH
@@ -16,28 +29,6 @@ actions:
         pen_button_2_touch: BTN_STYLUS
         tablet_buttons:
             - KEY_E
-            - ''
-            - KEY_LEFTCTRL+KEY_LEFTSHIFT+KEY_Z
-            - KEY_LEFTCTRL+KEY_Z
-            - ''
-        tablet_scrollbar_increase: KEY_LEFTCTRL+KEY_KPMINUS
-        tablet_scrollbar_decrease: KEY_LEFTCTRL+KEY_KPPLUS
-        tablet_scrollbar:
-            - ''
-            - ''
-            - ''
-            - ''
-            - ''
-            - ''
-            - ''
-    program_2:
-        pen_touch: BTN_TOUCH
-        pen_button_1: KEY_LEFTCTRL
-        pen_button_1_touch: KEY_LEFTCTRL+BTN_TOUCH
-        pen_button_2: ''
-        pen_button_2_touch: BTN_STYLUS
-        tablet_buttons:
-            - KEY_LEFTSHIFT+KEY_E
             - ''
             - KEY_LEFTCTRL+KEY_LEFTSHIFT+KEY_Z
             - KEY_LEFTCTRL+KEY_Z

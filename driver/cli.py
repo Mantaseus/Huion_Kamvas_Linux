@@ -5,14 +5,32 @@ Usage:
         [ -c | --create-default-config ]
     kamvas start
         [ -a=<val> | --action=<val> ]
+        [ -f | --start-in-foreground ]
+        [ -r | --print-usb-data ]
+        [ -c | --print-computed-values ]
     kamvas stop
     kamvas restart
         [ -a=<val> | --action=<val> ]
+        [ -f | --start-in-foreground ]
+        [ -r | --print-usb-data ]
+        [ -c | --print-computed-values ]
+    kamvas status
 
 Options:
+    -f, --start-in-foreground
+        Start the driver service in foreground instead if you
+        want to see the debug USB data
+    -r, --print-usb-data
+        Only works with the `-f` option. Prints the raw USB data
+        to the screen
+    -c, --print-computed-values
+        Only works with the `-f` option. Prints the computed X,
+        Y and pressure values from the tablet
     -a=<val>, --action-<val>
         Define which group of button mappings you want to use.
-        The button mappings are defined in {config_path}
+        The button mappings are defined in {config_path}.
+        If this is not provided then the script will try to use
+        default_action from the config file.
     -t=<val>, --evdev-test=<val> 
         Print out all the events that happen on your system for
         a given event file. The event files are usually located
@@ -37,12 +55,36 @@ import usb.core
 CONFIG_PATH = os.path.expanduser('~/.kamvas_config.yaml')
 DEFAULT_CONFIG_PATH = 'driver/config.yaml'
 
+# HELPRES -----------------------------------------------------------------------------------------
+
+def load_config(action):
+    with open('config.json', 'r') as json_file:
+        config_load = json.load(json_file)
+
+    # Get the pen config
+    try: 
+        config['pen'] = config_load['pen']
+    except:
+        print('The \'./config.yaml\' file does not have the \'pen\' property')
+        exit()
+
+    # Get the actions config
+    try:
+        config['actions'] = config_load['actions'][action]
+    except:
+        print('The \'./config.yaml\' file does not have the action group named \'{}\'. Please specify a valid action group name.'.format(action))
+        exit()
+
+
 # HANDLERS ----------------------------------------------------------------------------------------
 
 def handle_start():
     pass
 
 def handle_stop():
+    pass
+
+def handle_status():
     pass
 
 def handle_evdev_test(event_path):
@@ -86,6 +128,10 @@ def run_main():
     if args['restart']:
         handle_stop()
         handle_start()
+        return
+
+    if args['status']:
+        handle_status()
         return
 
     if args['--evdev-test']:
