@@ -38,10 +38,7 @@ ACTION_SPLIT_CHAR = '+'
 
 previous_scrollbar_state = 0
 previous_tablet_btn = 0
-previous_pen_state = 0
 previous_action = ''
-
-config = {}
 
 tablet_info = []
 
@@ -80,12 +77,6 @@ def read_tablet_info(device):
             tablet_info.append([hex(bRequest), result])
         except:
             pass
-
-def print_available_actions():
-    with open('config.json', 'r') as json_file:
-        config_load = json.load(json_file)
-        for key in config_load['actions']:
-            print(key)
 
 def run_action(new_action):
     def execute(action_text, press_type):
@@ -255,6 +246,7 @@ def run_main():
 
             # Tablet buttons
             if data[1] == 224:
+                global previous_tablet_btn
                 if data[4]:
                     btn_index = int(math.log(data[4],2))
                     if previous_tablet_btn != data[4] and args['actions'].get('tablet_buttons', ''):
@@ -266,6 +258,7 @@ def run_main():
 
             # Scrollbar
             if data[1] == 240:
+                global previous_scrollbar_state
                 scrollbar_state = data[5]
 
                 if scrollbar_state:
