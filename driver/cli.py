@@ -6,9 +6,6 @@ Usage:
     kamvas start
         [ -a=<val> | --action=<val> ]
     kamvas stop
-    kamvas restart [ -a=<val> | --action=<val> ] [ -f | --start-in-foreground ]
-        [ -r | --print-usb-data ]
-        [ -c | --print-computed-values ]
     kamvas status
 
 Options:
@@ -39,6 +36,7 @@ from docopt import docopt
 import evdev
 import usb.core
 import yaml
+import psutil
 
 # CONSTANTS ---------------------------------------------------------------------------------------
 
@@ -69,9 +67,24 @@ def load_config(action=''):
         config['actions'] = config['actions'][action]
         return config
 
+def driver_is_running():
+    for process in psutil.process_iter():
+        cmdline = process.cmdline()
+        if len(cmdline) < 3:
+            continue
+
+        if cmdline[2] == DRIVER_SCRIPT:
+            return True
+    else:
+        return False
+
 # HANDLERS ----------------------------------------------------------------------------------------
 
 def handle_start():
+    if driver_is_running():
+        print('Driver is already running')
+        return
+
     config = load_config()
     commands = [
         'sudo',
@@ -82,17 +95,29 @@ def handle_start():
         str(config['product_id']),
         json.dumps(config['pen']),
         json.dumps(config['actions']),
-        '-c',
     ]
 
     subprocess.Popen(commands)
     print('Started')
 
 def handle_stop():
-    pass
+    for process in psutil.process_iter():
+        cmdline = process.cmdline()
+        if len(cmdline) < 3:
+            continue
+
+        if cmdline[2] == DRIVER_SCRIPT:
+            print('Process found. Terminating it.')
+            process.terminate()
+            break
+    else:
+        print('Process not found: It is already dead')
 
 def handle_status():
-    pass
+    if driver_is_running():
+        print('Driver is currently running')
+    else:
+        print('Driver is currently NOT running')
 
 def handle_evdev_test(event_path):
     try:
@@ -125,16 +150,14 @@ def run_main():
     ))
 
     if args['start']:
-        handle_start()
+        if not driver_is_running():
+            handle_start()
+        else:
+            print('Driver is currently running. Stop it before starting it. Or just restart it')
         return
 
     if args['stop']:
         handle_stop()
-        return
-
-    if args['restart']:
-        handle_stop()
-        handle_start()
         return
 
     if args['status']:

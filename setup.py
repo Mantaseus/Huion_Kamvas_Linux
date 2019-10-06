@@ -7,8 +7,7 @@ if os.path.isfile("README.md"):
         long_description = fh.read()
 
 setuptools.setup(
-    name="kamvas-driver",
-    version="0.1.0",
+    name="kamvas-driver", version="0.1.0",
     author="Mantaseus",
     description = 'A Linux userland driver for Huion Kamvas Pro devices',
     long_description=long_description,
@@ -34,5 +33,6 @@ setuptools.setup(
         'pyusb',
         'evdev',
         'pyyaml',
+        'psutil',
     ],
 )
