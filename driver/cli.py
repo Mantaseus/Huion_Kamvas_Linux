@@ -2,6 +2,7 @@
 Usage:
     kamvas
         [ -t=<val> | --evdev-test=<val> ]
+        [ -u | --print-usb-events ]
         [ -c | --create-default-config ]
     kamvas start
         [ -a=<val> | --action=<val> ]
@@ -20,6 +21,11 @@ Options:
         a given event file. The event files are usually located
         in `/dev/input/` directory. This usually required sudo
         access
+    -u, --print-usb-events
+        Prints out add, remove and bind events for any USB devices
+        on your system. Use this to observe data about your device
+        that might be needed in the config if it isn't working for
+        you.
     -c, --create-default-config
         Create a default config file at {config_path}
         if it doesn't already exist
@@ -39,6 +45,7 @@ import shutil
 import subprocess
 import json
 
+from pyudev import Context, Monitor, MonitorObserver
 from docopt import docopt
 import evdev
 import usb.core
@@ -163,6 +170,27 @@ def handle_create_default_config():
     shutil.copyfile(DEFAULT_CONFIG_PATH, CONFIG_PATH)
     print('New config file created at {}'.format(CONFIG_PATH))
 
+def handle_print_usb_events():
+    def print_usb_events(action, device):
+        string_to_print = '{} - {}'.format(action, device)
+        for key in device.keys():
+            string_to_print += '\n    {}: {}'.format(key, device.get(key, ''))
+        print(string_to_print)
+
+    # Setup the code for monitoring USB events
+    context = Context()
+    monitor = Monitor.from_netlink(context)
+    monitor.filter_by(subsystem='usb')
+
+    observer = MonitorObserver(monitor, print_usb_events, name='kamvas-usb-monitor')
+
+    # This is needed to prevent the main thread from finishing which would close the process
+    # and nothing will be displayed
+    observer.daemon = False
+
+    # Start monitoring USB events asynchronously
+    observer.start()
+
 # MAIN --------------------------------------------------------------------------------------------
 
 def run_main():
@@ -192,6 +220,10 @@ def run_main():
 
     if args['--create-default-config']:
         handle_create_default_config()
+        return
+
+    if args['--print-usb-events']:
+        handle_print_usb_events()
         return
 
     print(__doc__)
