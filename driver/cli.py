@@ -5,6 +5,7 @@ Usage:
         [ -c | --create-default-config ]
     kamvas start
         [ -a=<val> | --action=<val> ]
+        [ -o | --print-driver-output ]
     kamvas stop
     kamvas status
 
@@ -22,6 +23,12 @@ Options:
     -c, --create-default-config
         Create a default config file at {config_path}
         if it doesn't already exist
+    -o, --print-driver-output
+        The driver's stdout and stderr messages are suppressed
+        by default. Use this to allow the driver to print to
+        your console. Note that driver output would get printed
+        at any time because the driver runs as a separate
+        process
 """
 
 from __future__ import print_function
@@ -100,8 +107,11 @@ def handle_start():
         json.dumps(config['actions']),
     ]
 
+    if not args['--print-driver-output']:
+        commands.append('-q')
+
     subprocess.Popen(commands)
-    print('Started')
+    print('Driver started')
 
 def handle_stop():
     # We will need sudo privileges to stop the driver because it was started as sudo
@@ -156,6 +166,7 @@ def handle_create_default_config():
 # MAIN --------------------------------------------------------------------------------------------
 
 def run_main():
+    global args
     args = docopt(__doc__.format(
         config_path=CONFIG_PATH
     ))

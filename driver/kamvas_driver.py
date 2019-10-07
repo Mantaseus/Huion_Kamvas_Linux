@@ -3,12 +3,15 @@ Usage:
     kamvas_driver <xinput_name> <usb_vendor_id> <usb_product_id> <pen_data> <action_data>
         [ -r | --print-usb-data ]
         [ -c | --print-calculated-data ]
+        [ -q | --quiet-mode ]
 
 Options:
     -r, --print-usb-data
         Prints the raw USB data to stdout
     -c, --print-calculated-data 
         Prints the calculated X, Y and pressure values
+    -q, --quiet-mode
+        Prevent any output to stdout or stderr
 
 Note:
     <pen_data>, <action_ids> and <action_data> must be 
@@ -53,18 +56,23 @@ def get_args():
     try:
         args['pen'] = json.loads(args['<pen_data>'])
     except:
-        print('Error while loading <pen_data> as a JSON object')
+        if not args['--quiet-mode']:
+            print('Error while loading <pen_data> as a JSON object')
         exit()
 
     try:
         args['actions'] = json.loads(args['<action_data>'])
     except:
-        print('Error while loading <action_data> as a JSON object')
+        if not args['--quiet-mode']:
+            print('Error while loading <action_data> as a JSON object')
         exit()
 
     return args
 
 def print_raw_data(data, spacing=5):
+    if args['--quiet-mode']:
+        return
+
     string = ''
     for element in data:
         string = string + str(element) + ' '*(spacing-len(str(element)))
@@ -161,7 +169,8 @@ def run_main():
     # Try to get a reference to the USB we need
     dev = usb.core.find(idVendor=args['<usb_vendor_id>'], idProduct=args['<usb_product_id>'])
     if not dev:
-        print("could not find device. The device may alread be open", file=sys.stderr)
+        if not args['--quiet-mode']:
+            print("could not find device. The device may alread be open", file=sys.stderr)
         sys.exit(1)
     
     # Forcefully claim the interface from any other script that might have been using it
@@ -170,7 +179,8 @@ def run_main():
             if dev.is_kernel_driver_active(interface.index):
                 dev.detach_kernel_driver(interface.index)
                 usb.util.claim_interface(dev, interface.index)
-                print("grabbed interface {}".format(interface.index))
+                if not args['--quiet-mode']:
+                    print("grabbed interface {}".format(interface.index))
     
     # The method needs to be called or otherwise the tablet may not be in the correct mode
     # and no output might be seen from the first endpoint after a tablet reboot
@@ -213,7 +223,7 @@ def run_main():
                 vpen.write(ecodes.EV_ABS, ecodes.ABS_TILT_X, pen_tilt_x)
                 vpen.write(ecodes.EV_ABS, ecodes.ABS_TILT_Y, pen_tilt_y)
 
-                if args['--print-calculated-data']:
+                if args['--print-calculated-data'] and not args['--quiet-mode']:
                     print("X {} Y {} PRESS {}          ".format(
                         pen_x, 
                         pen_y, 
@@ -283,11 +293,17 @@ def run_main():
     
         except usb.core.USBError as e:
             if e.args[0] == 19:
-                print('Device has been disconnected. Exiting ...')
+                if not args['--quiet-mode']:
+                    print('Device has been disconnected. Exiting ...')
                 exit()
 
             # The usb read probably timed out for this cycle. Thats ok
             data = None
         
 if __name__ == '__main__':
-    run_main()
+    try:
+        run_main()
+    except:
+        if not args['--quiet-mode']:
+            raise
+        exit()

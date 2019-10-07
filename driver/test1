@@ -1,0 +1,34 @@
+i[287651.358] (II) config/udev: Adding input device kamvas-pro (/dev/input/mouse3)
+[287651.358] (**) kamvas-pro: Applying InputClass "system-keyboard"
+[287651.358] (II) No input driver specified, ignoring this device.
+[287651.358] (II) This device may have been added with another device file.
+[287651.459] (II) config/udev: Adding input device kamvas-pro (/dev/input/event25)
+[287651.459] (**) kamvas-pro: Applying InputClass "evdev keyboard catchall"
+[287651.459] (**) kamvas-pro: Applying InputClass "evdev tablet catchall"
+[287651.459] (**) kamvas-pro: Applying InputClass "libinput keyboard catchall"
+[287651.459] (**) kamvas-pro: Applying InputClass "libinput tablet catchall"
+[287651.459] (**) kamvas-pro: Applying InputClass "system-keyboard"
+[287651.459] (**) kamvas-pro: Applying InputClass "evdev tablet catchall"
+[287651.459] (II) Using input driver 'evdev' for 'kamvas-pro'
+[287651.459] (**) kamvas-pro: always reports core events
+[287651.459] (**) evdev: kamvas-pro: Device: "/dev/input/event25"
+[287651.459] (--) evdev: kamvas-pro: Vendor 0x1 Product 0x1
+[287651.459] (--) evdev: kamvas-pro: Found absolute axes
+[287651.459] (--) evdev: kamvas-pro: Found x and y absolute axes
+[287651.459] (--) evdev: kamvas-pro: Found absolute tablet.
+[287651.459] (--) evdev: kamvas-pro: Found keys
+[287651.459] (II) evdev: kamvas-pro: Configuring as tablet
+[287651.459] (II) evdev: kamvas-pro: Configuring as keyboard
+[287651.459] (**) evdev: kamvas-pro: YAxisMapping: buttons 4 and 5
+[287651.459] (**) evdev: kamvas-pro: EmulateWheelButton: 4, EmulateWheelInertia: 10, EmulateWheelTimeout: 200
+[287651.459] (**) Option "config_info" "udev:/sys/devices/virtual/input/input106/event25"
+[287651.459] (II) XINPUT: Adding extended input device "kamvas-pro" (type: KEYBOARD, id 23)
+[287651.459] (**) Option "xkb_rules" "evdev"
+[287651.459] (**) Option "xkb_model" "pc105"
+[287651.459] (**) Option "xkb_layout" "ca"
+[287651.459] (**) Option "xkb_variant" "eng"
+[287651.460] (II) evdev: kamvas-pro: initialized for absolute axes.
+[287651.460] (**) kamvas-pro: (accel) keeping acceleration scheme 1
+[287651.460] (**) kamvas-pro: (accel) acceleration profile 0
+[287651.460] (**) kamvas-pro: (accel) acceleration factor: 2.000
+[287651.460] (**) kamvas-pro: (accel) acceleration threshold: 4

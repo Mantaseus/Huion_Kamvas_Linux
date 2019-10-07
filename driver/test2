@@ -1,0 +1,34 @@
+(II) config/udev: Adding input device kamvas-pen (/dev/input/mouse3)
+(**) kamvas-pen: Applying InputClass "system-keyboard"
+(II) No input driver specified, ignoring this device.
+(II) This device may have been added with another device file.
+(II) config/udev: Adding input device kamvas-pen (/dev/input/event25)
+(**) kamvas-pen: Applying InputClass "evdev keyboard catchall"
+(**) kamvas-pen: Applying InputClass "evdev tablet catchall"
+(**) kamvas-pen: Applying InputClass "libinput keyboard catchall"
+(**) kamvas-pen: Applying InputClass "libinput tablet catchall"
+(**) kamvas-pen: Applying InputClass "system-keyboard"
+(**) kamvas-pen: Applying InputClass "evdev tablet catchall"
+(II) Using input driver 'evdev' for 'kamvas-pen'
+(**) kamvas-pen: always reports core events
+(**) evdev: kamvas-pen: Device: "/dev/input/event25"
+(--) evdev: kamvas-pen: Vendor 0x1 Product 0x1
+(--) evdev: kamvas-pen: Found absolute axes
+(--) evdev: kamvas-pen: Found x and y absolute axes
+(--) evdev: kamvas-pen: Found absolute tablet.
+(--) evdev: kamvas-pen: Found keys
+(II) evdev: kamvas-pen: Configuring as tablet
+(II) evdev: kamvas-pen: Configuring as keyboard
+(**) evdev: kamvas-pen: YAxisMapping: buttons 4 and 5
+(**) evdev: kamvas-pen: EmulateWheelButton: 4, EmulateWheelInertia: 10, EmulateWheelTimeout: 200
+(**) Option "config_info" "udev:/sys/devices/virtual/input/input107/event25"
+(II) XINPUT: Adding extended input device "kamvas-pen" (type: KEYBOARD, id 23)
+(**) Option "xkb_rules" "evdev"
+(**) Option "xkb_model" "pc105"
+(**) Option "xkb_layout" "ca"
+(**) Option "xkb_variant" "eng"
+(II) evdev: kamvas-pen: initialized for absolute axes.
+(**) kamvas-pen: (accel) keeping acceleration scheme 1
+(**) kamvas-pen: (accel) acceleration profile 0
+(**) kamvas-pen: (accel) acceleration factor: 2.000
+(**) kamvas-pen: (accel) acceleration threshold: 4
