@@ -25,6 +25,7 @@ from pprint import pprint
 
 from docopt import docopt
 from evdev import UInput, ecodes, AbsInfo
+from pyudev import Context, Monitor, MonitorObserver
 import usb.core
 import usb.util
 import sys
@@ -32,6 +33,7 @@ import time
 import math
 import json
 import argparse
+
 
 # CONSTANTS ---------------------------------------------------------------------------------------
 
@@ -44,6 +46,7 @@ previous_tablet_btn = 0
 previous_action = ''
 
 tablet_info = []
+running_evdev = False
 
 # HELPER FUNCTIONS --------------------------------------------------------------------------------
 
@@ -146,12 +149,9 @@ def get_required_ecodes():
         for required_ecode in required_ecodes
     ]
 
-# MAIN --------------------------------------------------------------------------------------------
+# USB EVENT HANDLERS ------------------------------------------------------------------------------
 
-def run_main():
-    global args
-    args = get_args()
-
+def run_evdev():
     # Define the events that will be triggered by the custom xinput device that we will create
     pen_events = {
         # Defining a pressure sensitive pen tablet area with 2 stylus buttons and no eraser
@@ -200,6 +200,8 @@ def run_main():
     
     # Get a reference to the end that the tablet's output will be read from 
     usb_endpoint = dev[0][(0,0)][0]
+
+    running_evdev = True
 
     # Read the tablet output in an infinite loop
     while True:
@@ -299,7 +301,29 @@ def run_main():
 
             # The usb read probably timed out for this cycle. Thats ok
             data = None
+
+def handle_usb_event(action, device):
+    print(action, device)
+    for key in device.keys():
+        print('    ', key, device.get(key, ''))
         
+# MAIN --------------------------------------------------------------------------------------------
+
+def run_main():
+    global args
+    args = get_args()
+
+    # Setup the code for monitoring USB events
+    context = Context()
+    monitor = Monitor.from_netlink(context)
+    monitor.filter_by(subsystem='usb')
+
+    # Start monitoring USB events asynchronously
+    observer = MonitorObserver(monitor, handle_usb_event, name='monitor-observer')
+    observer.daemon = False
+    observer.start()
+    print('here')
+
 if __name__ == '__main__':
     try:
         run_main()
