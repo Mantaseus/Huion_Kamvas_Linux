@@ -46,7 +46,7 @@ previous_tablet_btn = 0
 previous_action = ''
 
 tablet_info = []
-running_evdev = False
+evdev_is_running = False
 
 # HELPER FUNCTIONS --------------------------------------------------------------------------------
 
@@ -169,9 +169,7 @@ def run_evdev():
     # Try to get a reference to the USB we need
     dev = usb.core.find(idVendor=args['<usb_vendor_id>'], idProduct=args['<usb_product_id>'])
     if not dev:
-        if not args['--quiet-mode']:
-            print("could not find device. The device may alread be open", file=sys.stderr)
-        sys.exit(1)
+        raise Exception("Could not find device. The device may be unavailable or already open")
     
     # Forcefully claim the interface from any other script that might have been using it
     for cfg in dev:
@@ -200,8 +198,6 @@ def run_evdev():
     
     # Get a reference to the end that the tablet's output will be read from 
     usb_endpoint = dev[0][(0,0)][0]
-
-    running_evdev = True
 
     # Read the tablet output in an infinite loop
     while True:
@@ -295,17 +291,33 @@ def run_evdev():
     
         except usb.core.USBError as e:
             if e.args[0] == 19:
-                if not args['--quiet-mode']:
-                    print('Device has been disconnected. Exiting ...')
-                exit()
+                raise Exception('Device has been disconnected')
 
             # The usb read probably timed out for this cycle. Thats ok
             data = None
 
 def handle_usb_event(action, device):
-    print(action, device)
-    for key in device.keys():
-        print('    ', key, device.get(key, ''))
+    # Don't care if it is already running
+    global evdev_is_running
+    if evdev_is_running:
+        return
+
+    # The graphics tablet USB device we are looking for should have the following 2 attributes
+    # defined as base 16 numbers
+    product_id = int(device.get('ID_MODEL_ID', '0'), 16)
+    vendor_id = int(device.get('ID_VENDOR_ID', '0'), 16)
+
+    if action == 'bind' and product_id == args['<usb_product_id>'] and vendor_id == args['<usb_vendor_id>']:
+        if not args['--quiet-mode']:
+            print('USB device detected. Reading data from it')
+
+        try:
+            evdev_is_running = True
+            run_evdev()
+        except:
+            if not args['--quiet-mode']:
+                print('Error occured')
+            evdev_is_running = False
         
 # MAIN --------------------------------------------------------------------------------------------
 
@@ -322,7 +334,15 @@ def run_main():
     observer = MonitorObserver(monitor, handle_usb_event, name='monitor-observer')
     observer.daemon = False
     observer.start()
-    print('here')
+
+    # Try to start the driver. It will raise an error if the USB device is not available
+    try:
+        evdev_is_running = True
+        run_evdev()
+    except:
+        if not args['--quiet-mode']:
+            print('Error occured')
+        evdev_is_running = False
 
 if __name__ == '__main__':
     try:
