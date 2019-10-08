@@ -44,6 +44,7 @@ import sys
 import shutil
 import subprocess
 import json
+import time
 
 from pyudev import Context, Monitor, MonitorObserver
 from docopt import docopt
@@ -116,6 +117,10 @@ def handle_start():
 
     if not args['--print-driver-output']:
         commands.append('-q')
+
+    if config.get('default_display', ''):
+        commands.append('-d')
+        commands.append(config['default_display'])
 
     subprocess.Popen(commands)
     print('Driver started')

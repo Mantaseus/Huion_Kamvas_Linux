@@ -4,6 +4,7 @@ Usage:
         [ -r | --print-usb-data ]
         [ -c | --print-calculated-data ]
         [ -q | --quiet-mode ]
+        [ -d=<val> | --map-to-display=<val> ]
 
 Options:
     -r, --print-usb-data
@@ -12,6 +13,10 @@ Options:
         Prints the calculated X, Y and pressure values
     -q, --quiet-mode
         Prevent any output to stdout or stderr
+    -d=<val>, --map-to-display=<val>
+        Map the driver output to the given display name.
+        By default the driver output will map to all the
+        system displays
 
 Note:
     <pen_data>, <action_ids> and <action_data> must be 
@@ -33,7 +38,8 @@ import time
 import math
 import json
 import argparse
-
+import time
+import subprocess
 
 # CONSTANTS ---------------------------------------------------------------------------------------
 
@@ -199,6 +205,8 @@ def run_evdev():
     # Get a reference to the end that the tablet's output will be read from 
     usb_endpoint = dev[0][(0,0)][0]
 
+    xinput_map_to_display()
+
     # Read the tablet output in an infinite loop
     while True:
         try:
@@ -291,6 +299,7 @@ def run_evdev():
     
         except usb.core.USBError as e:
             if e.args[0] == 19:
+                vpen.close()
                 raise Exception('Device has been disconnected')
 
             # The usb read probably timed out for this cycle. Thats ok
@@ -319,6 +328,35 @@ def handle_usb_event(action, device):
                 print('Error occured')
             evdev_is_running = False
         
+def xinput_map_to_display():
+    if not args['--map-to-display']:
+        if not args['--quiet-mode']:
+            print('Driver output not mapped to any display')
+        return
+
+    for i in range(0,10):
+        # Sleep for a second and try to assign the driver output to the default_display defined
+        # in the config
+        time.sleep(0.5)
+
+        process = subprocess.Popen(['xinput', 'list'], shell=True, stdout=subprocess.PIPE)
+        output = str(process.stdout.read())
+        if args['<xinput_name>'] in output:
+            subprocess.Popen([
+                'xinput', 
+                'map-to-output', 
+                args['<xinput_name>'], 
+                args['--map-to-display']
+            ])
+
+            if not args['--quiet-mode']:
+                print('Driver output mapped to {}'.format(args['--map-to-display']))
+
+            return
+
+    if not args['--quiet-mode']:
+        print('Driver output could not be mapped to {}'.format(args['--map-to-display']))
+
 # MAIN --------------------------------------------------------------------------------------------
 
 def run_main():
