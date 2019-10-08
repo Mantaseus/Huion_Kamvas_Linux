@@ -57,8 +57,8 @@ from elevate import elevate
 # CONSTANTS ---------------------------------------------------------------------------------------
 
 CONFIG_PATH = os.path.expanduser('~/.kamvas_config.yaml')
-DEFAULT_CONFIG_PATH = 'driver/config.yaml'
 
+DEFAULT_CONFIG_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'config.yaml')
 DRIVER_SCRIPT = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'kamvas_driver.py')
 
 # HELPRES -----------------------------------------------------------------------------------------

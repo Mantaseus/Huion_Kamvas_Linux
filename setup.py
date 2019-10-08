@@ -7,7 +7,7 @@ if os.path.isfile("README.md"):
         long_description = fh.read()
 
 setuptools.setup(
-    name="kamvas-driver", version="0.1.0",
+    name="kamvas-driver", version="0.1.2",
     author="Mantaseus",
     description = 'A Linux userland driver for Huion Kamvas Pro devices',
     long_description=long_description,
@@ -24,8 +24,8 @@ setuptools.setup(
     },
 
     classifiers=[
-        "License :: MIT License",
-        "Operating System :: Linux",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: POSIX :: Linux",
     ],
     install_requires = [
         'docopt',

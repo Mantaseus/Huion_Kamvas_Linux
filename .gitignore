@@ -1,2 +1,5 @@
 test.py
 *.swp
+dist/
+build/
+kamvas_driver.egg-info/

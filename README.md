@@ -38,7 +38,7 @@ With this driver you can:
 - Install the driver module
 
     ```
-    pip3 install huion-kamvas-driver
+    pip3 install kamvas-driver
     ```
 - Update your `/etc/X11/xorg.conf` file (create it if it is not already there):
 
