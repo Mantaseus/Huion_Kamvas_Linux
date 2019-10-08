@@ -24,8 +24,8 @@ setuptools.setup(
     },
 
     classifiers=[
-        "License :: OSI Approved :: MIT License",
-        "Operating System :: OS Independent",
+        "License :: MIT License",
+        "Operating System :: Linux",
     ],
     install_requires = [
         'docopt',
