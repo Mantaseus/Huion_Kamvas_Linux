@@ -84,13 +84,6 @@ kamvas -c
 ```
 
 You can edit `~/.kamvas_config.json` file to define your custom settings for your graphics tablet. The config file allows you to define the following:
-- Capabilies of your graphics tablet (like its resolution, pressure sensitivity, etc)
-    - You will most likely not need to change this but might be useful if you are trying to adapt this driver to some other device
-    - These fields are
-        - xinput_name
-        - vendor_id
-        - product_id
-        - pen
 - Actions that must be performed when a button is clicked
     - The script uses `evdev` events to perform these actions so the values for these actions can be any commands starting with `KEY_` or `BTN_`. For example:
         - Use `KEY_A` to effectively simulate the presseing of the `a` key on your keyboard
@@ -108,6 +101,20 @@ You can edit `~/.kamvas_config.json` file to define your custom settings for you
     - Remove this field if you do not have `xinput` installed or are just using a single display
     - If you have multiple displays and you do not use this field then the output from your graphics tablet will be mapped to all the displays by default
 - The `default_action` field defines the button actions group that will be used by the driver if `kamvas start -a=<action_name>` is not used to start the driver 
+- Capabilies of your graphics tablet (like its resolution, pressure sensitivity, etc)
+    - You will most likely not need to change this but might be useful if you are trying to adapt this driver to some other device
+    - These fields are
+        - xinput_name
+        - vendor_id
+        - product_id
+        - pen
+    - If you do need to redefine these values that try
+        - `kamvas -o` to print driver output as it happens
+            - You might need to dig into the code and make sure to pass in the `-r` or `-c` options to the driver subprocess
+            - `-r` will allow you to monitor raw USB data as it comes in
+            - `-c` will allow you to monitor the calculated values being sent to the system by the driver
+        - `kamvas -u` which will print some USB information as the device gets plugged in or removed
+        - [Digimend uclogic-tools](https://github.com/DIGImend/uclogic-tools). Specifically, try using `uclogic-probe | uclogic-decode`
 
 ## Known Issues
 
