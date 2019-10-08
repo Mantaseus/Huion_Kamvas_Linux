@@ -109,19 +109,6 @@ You can edit `~/.kamvas_config.json` file to define your custom settings for you
     - If you have multiple displays and you do not use this field then the output from your graphics tablet will be mapped to all the displays by default
 - The `default_action` field defines the button actions group that will be used by the driver if `kamvas start -a=<action_name>` is not used to start the driver 
 
-## Troubleshooting
-
-- The cursor behaves erratically or doesn't move at all
-    - The graphics tablet sends out a packet of bytes every time you move the pen or click a button
-    - Each byte represents a certain parameter
-        - For example: For the Huion Kamvas Pro 13 the `x_pos_msb = data_packet[3]` and `x_pos_lsb = data_packet[2]`
-    - It is possible that your graphics tablet arranges its data in a different way
-    - You can use `-r` optional argument when running the script to print the raw byte packets
-        - Each column represents a piece of data being sent by the tablet 
-    - Observe how the values change when you perform certain actions
-        - For example: Try to slowly move the pen from left to right and see how the values in the packet change. The values that change are most likely related to the X postion. Of those values, the byte changes more slowly is likely to be the MSB and the one that changes faster is likely to be the LSB.
-    - Modify the code as needed and test your findings
-
 ## Known Issues
 
 - The driver is unable to survive a system suspend or hibernate event
